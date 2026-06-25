@@ -28,6 +28,7 @@
                     (lib.mapAttrsToList (path: filedef: ''
                         mkdir -p $(dirname "$out/${path}")
                         echo -n ${lib.escapeShellArg filedef.text} > "$out/${path}"
+                        echo "Put ${lib.escapeShellArg filedef.text} into $out/${path}"
                     '') config.home.file)}
             '';
             commitFiles = pkgs.writeShellScript "commit" ''
@@ -36,12 +37,15 @@
                 cd ${makeFiles}
 
                 # TODO
-                find . -type f -exec bash -c '
-                    target="$HOME/''${1#./}"
-                    source="${makeFiles}/''${1#./}"
+                find . -type f -printf "%P\n" | while read -r file; do 
+                    target="$HOME/$file"
+                    source="${makeFiles}/$file"
+                    echo "home-manager2: Target $target"
+                    echo "home-manager2: Source $source"
+                    echo "home-manager2: Symlinking"
                     mkdir -p "$(dirname "$target")"
                     ln -s "$source" "$target"
-                ' bash {} \;
+                done
 
                 echo "$HOME populated"
             '';

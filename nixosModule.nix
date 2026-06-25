@@ -13,8 +13,8 @@
                 genericModule = ./modules/generic.nix; 
             }; 
             in ''
-                echo "Activating home-manager2 for user $username"
-                runuser -u ${username} -- "${pkg}/commit"
+                echo "Activating home-manager2 for user ${username}"
+                runuser -u ${username} -- env HOME="${config.users.users.${username}.home}" USER="${username}" "${pkg}/commit"
             '') config.home-manager2.users
         );
     };
