@@ -21,7 +21,7 @@
 
     config = {
         build.commitPackage = let 
-            makeFiles = pkgs.runCommand "make-files" {} ''
+            homeFiles = pkgs.runCommand "home-manager2-files" {} ''
                 mkdir -p $out
 
                 ${lib.concatStringsSep "\n" 
@@ -34,12 +34,12 @@
             commitFiles = pkgs.writeShellScript "commit" ''
                 echo "Commiting files to $HOME"
 
-                cd ${makeFiles}
+                cd ${homeFiles}
 
                 # TODO
                 find . -type f -printf "%P\n" | while read -r file; do 
                     target="$HOME/$file"
-                    source="${makeFiles}/$file"
+                    source="${homeFiles}/$file"
                     echo "home-manager2: Target $target"
                     echo "home-manager2: Source $source"
                     echo "home-manager2: Symlinking"
@@ -51,7 +51,7 @@
             '';
         in pkgs.runCommand "home-manager-generation" {} ''
             mkdir -p $out
-            ln -s ${makeFiles} $out/make-files
+            ln -s ${homeFiles} $out/home-manager2-files
             ln -s ${commitFiles} $out/commit
         '';
     };
