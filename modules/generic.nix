@@ -37,15 +37,33 @@
                 cd ${homeFiles}
 
                 # TODO
-                find . -type f -printf "%P\n" | while read -r file; do 
+                while read -r file; do 
                     target="$HOME/$file"
                     source="${homeFiles}/$file"
-                    echo "home-manager2: Target $target"
-                    echo "home-manager2: Source $source"
-                    echo "home-manager2: Symlinking"
+
+                    if [ -e "$target" ] || [ -L "$target" ]; then
+                        if [ -L "$target" ]; then
+                            dest=$(readlink "$target")
+
+                            if [[ "$dest" == /nix/store/* ]]; then
+                                echo "home-manager2: Removing old symlink '$target' to '$dest'"
+                                rm "$target"
+                            else
+                                echo "home-manager2: Collision detected." >&2
+                                echo "'$target' already points to '$dest'" >&2
+                                exit 1
+                            fi
+                        else
+                            echo "home-manager2: Collision detected." >&2
+                            echo "$target is a file that is not administered by home-manager2" >&2
+                            exit 1
+                        fi
+                    fi
+
+                    echo "home-manager2: Symlinking '$target' to '$source'"
                     mkdir -p "$(dirname "$target")"
                     ln -s "$source" "$target"
-                done
+                done < <(find . -type f -printf "%P\n")
 
                 echo "$HOME populated"
             '';
