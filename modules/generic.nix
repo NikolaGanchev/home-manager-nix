@@ -6,9 +6,15 @@
             type = lib.types.attrsOf (lib.types.submodule {
                 options = {
                     text = lib.mkOption {
-                        type = lib.types.str;
-                        default = "";
+                        type = lib.types.nullOr lib.types.str;
+                        default = null;
                         description = "The text content of the file";
+                    };
+
+                    source = lib.mkOption {
+                        type = lib.types.nullOr lib.types.path;
+                        default = null;
+                        description = "Path to a local file or directory to symlink";
                     };
                 };
             });
@@ -27,8 +33,12 @@
                 ${lib.concatStringsSep "\n" 
                     (lib.mapAttrsToList (path: filedef: ''
                         mkdir -p $(dirname "$out/${path}")
-                        echo -n ${lib.escapeShellArg filedef.text} > "$out/${path}"
-                        echo "Put ${lib.escapeShellArg filedef.text} into $out/${path}"
+
+                        ${if filedef.source != null then 
+                            ''cp -r ${filedef.source} "$out/${path}"''
+                        else if filedef.text != null then 
+                            ''echo -n ${lib.escapeShellArg filedef.text} > "$out/${path}"''
+                        else ''echo "home-manager2: Neither text nor source provided for ${path}" >&2''}
                     '') config.home.file)}
             '';
             commitFiles = pkgs.writeShellScript "commit" ''
