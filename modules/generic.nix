@@ -36,7 +36,12 @@
                 cd ${makeFiles}
 
                 # TODO
-                touch "$HOME/notification"
+                find . -type f -exec bash -c '
+                    target="$HOME/''${1#./}"
+                    source="${makeFiles}/''${1#./}"
+                    mkdir -p "$(dirname "$target")"
+                    ln -s "$source" "$target"
+                ' bash {} \;
 
                 echo "$HOME populated"
             '';
