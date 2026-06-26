@@ -1,8 +1,24 @@
 { config, lib, pkgs, ...}: {
     options.home-manager2 = {
-        users = lib.mkOption {
-            type = lib.types.attrsOf lib.types.attrs;
-            default = {};
+        profiles = lib.mkOption {
+            type = lib.types.attrsOf (lib.types.submodule ({config, ...}: {
+                options = {
+                    config = lib.mkOption {
+                        type = lib.types.attrsOf lib.types.attrs;
+                        default = {};
+                    };
+
+                    username = lib.mkOption {
+                        type = lib.types.str;
+                    };
+
+                    home = lib.mkOption {
+                        type = lib.types.path;
+                        default = "/home/${config.user}";
+                    };
+                };
+            }));
+            
         };
 
         extraModules = lib.mkOption {
@@ -16,18 +32,18 @@
         home-manager2.extraModules = [ ./modules/git.nix ];
 
         system.activationScripts.home-manager2-activate = lib.concatStringsSep "\n" (
-            lib.mapAttrsToList (username: userConfig: 
-            let pkg = import ./lib/evaluateConfig.nix { 
-                inherit pkgs lib; 
-                configuration = userConfig; 
-                genericModule = ./modules/generic.nix; 
+            lib.mapAttrsToList (profile: profileConfig: 
+                let pkg = import ./lib/evaluateConfig.nix { 
+                    inherit pkgs lib; 
+                    configuration = profileConfig.config; 
+                    genericModule = ./modules/generic.nix; 
 
-                extraModules = config.home-manager2.extraModules;
-            }; 
-            in ''
-                echo "Activating home-manager2 for user ${username}"
-                runuser -u ${username} -- env HOME="${config.users.users.${username}.home}" USER="${username}" "${pkg}/commit"
-            '') config.home-manager2.users
+                    extraModules = config.home-manager2.extraModules;
+                }; 
+                in ''
+                    echo "Activating home-manager2 for user ${profileConfig.username}"
+                    runuser -u ${profileConfig.username} -- env HOME="${config.users.users.${profileConfig.username}.home}" USER="${profileConfig.username}" "${pkg}/commit"
+                '') config.home-manager2.profiles
         );
     };
 }
