@@ -42,18 +42,40 @@
                     '') config.home.file)}
             '';
             commitFiles = pkgs.writeShellScript "commit" ''
-                echo "Commiting files to $HOME"
+                echo "home-manager2: Commiting files to $HOME"
 
                 cd ${homeFiles}
 
-                # TODO
+                state_dir="$HOME/.local/state/home-manager2"
+                state_file="$state_dir/administered-files"
+                mkdir -p "$state_dir"
+
+                if [ -f "$state_file" ]; then
+                    while read -r old_file; do
+                        # does not exist in this generation
+                        if [ ! -e "$old_file" ]; then
+
+                            target="$HOME/$old_file"
+                            dest="$(readlink "$target")"
+                            if [ -L $target ] && [[ "$dest" == /nix/store/* ]]; then
+                                echo "home-manager2: Removing orphaned symlink '$target'"
+                                rm "$target"
+
+                                rmdir --ignore-fail-on-non-empty -p "$(dirname "$target")" 2>/dev/null || true
+                            fi
+                        fi
+                    done < "$state_file"
+                fi
+
+                rm -f "$state_file"
+
                 while read -r file; do 
                     target="$HOME/$file"
                     source="${homeFiles}/$file"
 
                     if [ -e "$target" ] || [ -L "$target" ]; then
                         if [ -L "$target" ]; then
-                            dest=$(readlink "$target")
+                            dest="$(readlink "$target")"
 
                             if [[ "$dest" == /nix/store/* ]]; then
                                 echo "home-manager2: Removing old symlink '$target' to '$dest'"
@@ -73,9 +95,11 @@
                     echo "home-manager2: Symlinking '$target' to '$source'"
                     mkdir -p "$(dirname "$target")"
                     ln -s "$source" "$target"
+
+                    echo "$file" >> "$state_file"
                 done < <(find . -type f -printf "%P\n")
 
-                echo "$HOME populated"
+                echo "home-manager2: $HOME populated"
             '';
         in pkgs.runCommand "home-manager-generation" {} ''
             mkdir -p $out
