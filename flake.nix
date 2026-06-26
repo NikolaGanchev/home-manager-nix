@@ -6,14 +6,18 @@
     };
 
     outputs = { self, nixpkgs }: {
+        modules = {
+            generic = ./modules/generic.nix;
+            git = ./modules/git.nix;
+        };
+
         lib = {
-            makeHome = { pkgs, configuration }:
+            makeHome = { pkgs, configuration, extraModules ? [] }:
                 import ./lib/evaluateConfig.nix {
-                    inherit pkgs configuration;
+                    inherit pkgs configuration extraModules;
                     lib = nixpkgs.lib;
 
-                    genericModule = ./modules/generic.nix;
-                    extraModules = configuration.home-manager2.extraModules;
+                    genericModule = self.modules.generic;
                 };
         };
 
