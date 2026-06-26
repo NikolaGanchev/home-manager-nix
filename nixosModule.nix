@@ -8,6 +8,10 @@
                         default = {};
                     };
 
+                    enable = lib.mkOption {
+                        type = lib.types.bool;
+                    };
+
                     username = lib.mkOption {
                         type = lib.types.str;
                     };
@@ -43,7 +47,7 @@
                 in ''
                     echo "Activating home-manager2 for user ${profileConfig.username}"
                     runuser -u ${profileConfig.username} -- env HOME="${config.users.users.${profileConfig.username}.home}" USER="${profileConfig.username}" "${pkg}/commit"
-                '') config.home-manager2.profiles
+                '') (lib.attrsets.filterAttrs (name: value: value.enable) config.home-manager2.profiles)
         );
     };
 }

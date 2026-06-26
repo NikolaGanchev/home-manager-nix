@@ -13,6 +13,7 @@
                     lib = nixpkgs.lib;
 
                     genericModule = ./modules/generic.nix;
+                    extraModules = configuration.home-manager2.extraModules;
                 };
         };
 
