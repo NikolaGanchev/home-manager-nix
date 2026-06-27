@@ -5,11 +5,20 @@
         nixpkgs.url = "github:nixos/nixpkgs/nixos-26.05";
     };
 
-    outputs = { self, nixpkgs }: {
+    outputs = { self, nixpkgs }: 
+    let 
+        systems = ["x86_64-linux" "aarch64-linux" "aarch64-darwin" "x86_64-linux"];
+    in
+    {
         modules = {
             generic = ./modules/generic.nix;
             git = ./modules/git.nix;
         };
+
+        packages = nixpkgs.lib.genAttrs systems (system: {
+                default = nixpkgs.legacyPackages.${system}.writeShellScriptBin "home-manager2" (builtins.readFile ./cli.sh);
+            }
+        );
 
         lib = {
             makeHome = { pkgs, configuration, extraModules ? [] }:
