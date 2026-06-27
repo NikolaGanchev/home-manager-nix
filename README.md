@@ -130,8 +130,8 @@ The library functions by iterating over this set and creating a static file stru
     - if a file with the same name and path does not exist in the `home` directory, a symlink to the new file is created with that path and name.
 3. Records the symlinks it has written to `$HOME/.local/state/home-manager2/administered-files`.
 
-## Extending
-Custom modules can be defined that exports options and the appropriate config to generate configuration files according to those options. A provided example is the `git` module. It defines how the standard `programs.git` options should influence the `home` directory state, allowing easy definitions:
+## Extra modules
+Extra modules can be defined that exports options and the appropriate config to generate configuration files according to those options. A provided example is the `git` module. It defines how the standard `programs.git` options should influence the `home` directory state, allowing easy definitions:
 
 ```nix
 outputs = {nixpkgs, home-manager2, ...}:

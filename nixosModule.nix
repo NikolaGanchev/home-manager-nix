@@ -6,14 +6,17 @@
                     profiles = lib.mkOption {
                         type = lib.types.attrsOf lib.types.attrs;
                         default = {};
+                        description = "Named configurations";
                     };
 
                     home = lib.mkOption {
                         type = lib.types.path;
                         default = "/home/${name}";
+                        description = "The path to the home directory";
                     };
 
                     activeProfile = lib.mkOption {
+                        description = "The profile that will be used by the user";
                         type = lib.types.nullOr lib.types.str;
                         default = 
                             let 

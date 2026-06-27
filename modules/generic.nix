@@ -14,7 +14,7 @@
                     source = lib.mkOption {
                         type = lib.types.nullOr lib.types.path;
                         default = null;
-                        description = "Path to a local file or directory to symlink";
+                        description = "Path to a local file or directory to copy";
                     };
                 };
             });
