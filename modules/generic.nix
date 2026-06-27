@@ -33,16 +33,18 @@
                 ${lib.concatStringsSep "\n" 
                     (lib.mapAttrsToList (path: filedef: ''
                         mkdir -p $(dirname "$out/${path}")
-
-                        ${if filedef.source != null then 
+                        
+                        ${if filedef.source != null && filedef.text != null then 
+                            builtins.throw "home-manager2: Both text and source provided for '${path}'."
+                        else if filedef.source != null then 
                             ''cp -r ${filedef.source} "$out/${path}"''
                         else if filedef.text != null then 
                             ''echo -n ${lib.escapeShellArg filedef.text} > "$out/${path}"''
-                        else ''echo "home-manager2: Neither text nor source provided for ${path}" >&2''}
+                        else builtins.throw "home-manager2: Neither text nor source provided for '${path}'."}
                     '') config.home.file)}
             '';
             commitFiles = pkgs.writeShellScript "commit" ''
-                echo "home-manager2: Commiting files to $HOME"
+                echo "home-manager2: Commiting files to '$HOME'"
 
                 cd ${homeFiles}
 
