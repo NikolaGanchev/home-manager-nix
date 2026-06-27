@@ -36,5 +36,41 @@ echo "home-manager2: Build successful. Proceeding to activation."
 "$generations_dir/current/commit"
 
 elif [ "$command" == "collect-garbage" ]; then 
-    #TODO
+    keepn=$2
+
+    if [[ -z "$keepn" ]] || ! [[ "$keepn" =~ ^[0-9]+$ ]] || [ "$keepn" -lt 1 ]; then
+        echo "home-manager2: 'collect-garbage' requires a positive integer argument"
+        exit 1
+    fi
+
+    if [ ! -d "$generations_dir" ]; then
+        echo "home-manager2: No generations directory found. Nothing to do"
+        exit 0
+    fi
+
+    mapfile -t generations < <(find "$generations_dir" -maxdepth 1 -name "generation-*" | sort)
+    gen_count=${#generations[@]}
+
+    if [ "$gen_count" -le "$keepn" ]; then
+        echo "home-manager2: Found only $gen_count generations, which is less than or equal to the given argument $keepn."
+        exit 0
+    fi
+
+    delete_count=$((gen_count - keepn))
+    current_generation=$(readlink -f "$generations_dir/current" 2>/dev/null)
+
+    echo "home-manager2: Keeping the last $keepn generations. Deleting $delete_count old generations."
+
+    for (( i = 0; i < delete_count; i++ )); do
+        gen_to_delete="${generations[$i]}"
+
+        if [ "$(readlink -f "$gen_to_delete")" == "$current_target" ]; then
+            continue
+        fi
+
+        echo "Deleting $(basename "$gen_to_delete")"
+        rm -rf "$gen_to_delete"
+    done
+
+    echo "home-manager2: Garbage collection successful."
 fi
