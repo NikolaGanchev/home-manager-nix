@@ -64,7 +64,7 @@ elif [ "$command" == "collect-garbage" ]; then
     for (( i = 0; i < delete_count; i++ )); do
         gen_to_delete="${generations[$i]}"
 
-        if [ "$(readlink -f "$gen_to_delete")" == "$current_target" ]; then
+        if [ "$(readlink -f "$gen_to_delete")" == "$current_generation" ]; then
             continue
         fi
 
